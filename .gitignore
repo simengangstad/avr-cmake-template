@@ -1,3 +1,4 @@
-device_packs/
+device_pack/
 build/
 *.DS_Store
+.ccls-cache/

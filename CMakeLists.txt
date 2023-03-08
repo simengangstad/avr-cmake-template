@@ -7,10 +7,6 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE  "${DEFAULT_BUILD_TYPE}")
 endif()
 
-if(NOT ATPACK_DIR)
-    message(FATAL_ERROR "ATPACK_DIR is not defined, please define the path to the ATPACK directory by issuing 'cmake -DATPACK_DIR=<dir> ..'")
-endif()
-
 if(NOT MCU)
     message(FATAL_ERROR "MCU is not defined, please define by 'cmake -DMCU=<mcu> ..'")
 endif()
@@ -19,8 +15,12 @@ if(NOT F_CPU)
     message(FATAL_ERROR "F_CPU is not defined, please define clock frequency by 'cmake -DF_CPU=<clock frequency> ..'")
 endif()
 
+set(DEVICE_PACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/device_pack)
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
+if(NOT EXISTS ${DEVICE_PACK_DIR})
+    message(FATAL_ERROR "Device pack not found in root of project directory. The device pack (ATPACK/DFP) should be in a folder named 'device_pack'.")
+endif()
+
 
 
 # --------------------------------- Toolchain ---------------------------------
@@ -30,6 +30,7 @@ find_program(AVR_CXX avr-g++ REQUIRED)
 find_program(AVR_OBJCOPY avr-objcopy REQUIRED)
 find_program(AVR_SIZE_TOOL avr-size REQUIRED)
 find_program(AVR_OBJDUMP avr-objdump REQUIRED)
+
 find_program(PYMCUPROG pymcuprog REQUIRED)
 
 set(CMAKE_SYSTEM_NAME Generic)
@@ -45,9 +46,26 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 enable_language(C CXX ASM)
 
-# Helper variables for the device related directories in the ATPACK
-set(MCU_DEVICE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${ATPACK_DIR}/gcc/dev/${MCU})
-set(MCU_INCLUDE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${ATPACK_DIR}/include)
+# Helper variables for the device related directories in the ATPACK and the 
+# toolchain
+set(MCU_DEVICE_DIRECTORY ${DEVICE_PACK_DIR}/gcc/dev/${MCU})
+set(MCU_INCLUDE_DIRECTORY ${DEVICE_PACK_DIR}/include)
+
+if(NOT EXISTS ${MCU_DEVICE_DIRECTORY}/device-specs/specs-${MCU})
+    message(FATAL_ERROR "Could not find device pack for ${MCU}, tried looking in directory ${MCU_DEVICE_DIRECTORY}/device-specs/specs-${MCU}. The device name might be misspelled or the device pack might be incorrect for this device.")
+endif()
+
+# Find the device library name by going through the device specs for the device 
+file(READ ${MCU_DEVICE_DIRECTORY}/device-specs/specs-${MCU} SPECS_FILE_CONTENT)
+string(
+    REGEX MATCH 
+    "-D__AVR_DEVICE_NAME__=${MCU} -D__AVR_DEV_LIB_NAME__=([a-zA-Z0-9]*)" 
+    _ 
+    ${SPECS_FILE_CONTENT}
+)
+set(MCU_DEV_LIB_NAME ${CMAKE_MATCH_1})
+
+
 
 # ----------------------------------- Target -----------------------------------
 
@@ -72,14 +90,15 @@ set(INCLUDE_DIRECTORIES
 set(COMPILE_DEFINITIONS
     # Define the clock speed of the MCU 
     -DF_CPU=${F_CPU}
+    -D__AVR_DEV_LIB_NAME__=${MCU_DEV_LIB_NAME}
 )
 
 set(ERROR_FLAGS 
     -Wall 
-    -Wundef
     -Wextra 
-    -Wpedantic 
+    -pedantic 
     -Wshadow 
+    -Wno-array-bounds
     -Wno-vla 
 )
 
@@ -99,6 +118,8 @@ set(COMPILE_OPTIONS
 
     # Include the AVR header files from the ATPACK
     -I${MCU_INCLUDE_DIRECTORY} 
+
+    # Notify the compiler about the device specs
     -B${MCU_DEVICE_DIRECTORY}
 
     # Vary optimization and debug level based on if
@@ -123,6 +144,7 @@ set(LINK_OPTIONS
     -Wl,--sort-section=alignment
     -Wl,--cref
 
+    # Notify the compiler about the device specs
     -B${MCU_DEVICE_DIRECTORY}
 )
 
