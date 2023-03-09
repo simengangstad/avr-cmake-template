@@ -7,12 +7,8 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE  "${DEFAULT_BUILD_TYPE}")
 endif()
 
-if(NOT MCU)
-    message(FATAL_ERROR "MCU is not defined, please define by 'cmake -DMCU=<mcu> ..'")
-endif()
-
-if(NOT F_CPU)
-    message(FATAL_ERROR "F_CPU is not defined, please define clock frequency by 'cmake -DF_CPU=<clock frequency> ..'")
+if(NOT MCU OR NOT F_CPU)
+    message(FATAL_ERROR "MCU or F_CPU is not defined, please define by 'cmake -DMCU=<mcu> -DF_CPU=<clock frequency> ..'")
 endif()
 
 set(DEVICE_PACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/device_pack)
@@ -171,6 +167,6 @@ add_custom_command(TARGET ${TARGET}
 
 add_custom_target(flash
     DEPENDS ${TARGET} 
-    COMMAND ${PYMCUPROG} write -d {MCU} -f {TARGET}.hex --erase
+    COMMAND ${PYMCUPROG} write -d ${MCU} -f ${TARGET}.hex --erase
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
