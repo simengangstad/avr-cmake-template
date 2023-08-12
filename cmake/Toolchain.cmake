@@ -130,7 +130,7 @@ add_compile_options(${TOOLCHAIN_COMPILE_OPTIONS})
 add_compile_definitions(${TOOLCHAIN_COMPILE_DEFINITIONS})
 add_link_options(${TOOLCHAIN_LINK_OPTIONS})
 
-function(add_avr_executable TARGET)
+function(configure_target TARGET)
 
   if(NOT ARGN)
     message(FATAL_ERROR "No source files given for ${TARGET}.")
@@ -228,4 +228,4 @@ function(add_avr_executable TARGET)
     APPEND
     PROPERTY ADDITIONAL_CLEAN_FILES ${TARGET}.lst)
 
-endfunction(add_avr_executable)
+endfunction(configure_target)

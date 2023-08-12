@@ -25,7 +25,7 @@ include(../cmake/Toolchain.cmake)
 project(test_project)
 file(GLOB SOURCES src/*.c src/*.cpp)
 
-add_avr_executable(${TARGET} ${SOURCES})
+configure_target(${TARGET} ${SOURCES})
 
 # Specify own definitions, include directories and libraries here. The
 # AVRToolChain.cmake file already specifies a bunch of standard compile options
