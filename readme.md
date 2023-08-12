@@ -28,7 +28,7 @@ Please refer to the example project for the full outline of the `CMakeLists.txt`
 
 ## Use
 
-Once the `CMakeLists.txt` has been defined, the project can be compiled and upload by issuing:
+Once the `CMakeLists.txt` has been defined, the project can be compiled and uploaded by issuing:
 
 - `mkdir build && cd build`
 - `cmake ..`
@@ -46,7 +46,9 @@ Once the `CMakeLists.txt` has been defined, the project can be compiled and uplo
 
 ## LSP
 
-The `Toolchain.cmake` file is set to generate a `compile_commands.json` compilation database for use with e.g. clangd. It is advised to keep a symlink pointing form the root of the project to the build folder: `ln -s build/compile_commands.json compile_commands.json`. In order for clangd to work properly with avr-gcc, a `.clangd` file is provided in the example project. Moreover, clangd has to be started with `--query-driver=<path to avr-gcc/avr-g++>`. For Neovim users, the following Lua snippet is useful for setting this up with lspconfig:
+The `Toolchain.cmake` file is set to generate a `compile_commands.json` compilation database for use with e.g. clangd. It is advised to keep a symlink pointing from the root of the project to the build folder: `ln -s build/compile_commands.json compile_commands.json`. 
+
+In order for clangd to work properly with avr-gcc, a `.clangd` file is provided in the example project. Moreover, clangd has to be started with `--query-driver=<path to avr-gcc/avr-g++>`. For Neovim users, the following Lua snippet is useful for setting this up with lspconfig:
 
 ```lua
 local build_clangd_command = function()
