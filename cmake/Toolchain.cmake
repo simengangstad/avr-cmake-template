@@ -35,8 +35,6 @@ enable_language(C CXX ASM)
 # don't have native support in avr-gcc)
 if(TOOLCHAIN_NEED_DEVICE_PACK)
 
-  message(WARNING ${CMAKE_CURRENT_SOURCE_DIR})
-
   set(DEVICE_PACK_DIR ${CMAKE_CURRENT_SOURCE_DIR}/device_pack)
 
   if(NOT EXISTS ${DEVICE_PACK_DIR})
