@@ -24,7 +24,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 3. The project needs to be defined with the function `add_avr_executable(${TARGET} <your sources>)`.
 
-Please refer to the example project for the full outline of the `CMakeLists.txt`. Note that for newer devices, a device pack might be needed. The boolean `TOOLCHAIN_NEED_DEVICE_PACK` specifies this. If this variable is set to true, `Toolchain.cmake`will look for a `device_pack` folder at the root of the project and set up the necessary compiler flags for using the device pack with the given MCU specified.
+Please refer to the example project for the full outline of the `CMakeLists.txt`. Note that for newer devices, a device pack might be needed. The boolean `TOOLCHAIN_NEED_DEVICE_PACK` specifies this. If this variable is set to true, `Toolchain.cmake` will look for a `device_pack` folder at the root of the project and set up the necessary compiler flags for using the device pack with the given MCU specified. The device packs can be found at [Microchip Packs Repository](http://packs.download.atmel.com). Download the pack for your device and unzip it into a folder named `device_pack` in the root of your project: `unzip <device_pack>.atpack -d device_pack`.
 
 ## Use
 
