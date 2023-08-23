@@ -76,7 +76,7 @@ endif()
 # ---------------------------- Definitions & flags -----------------------------
 
 if(NOT DEFINED F_CPU)
-  message("F_CPU not defined, has to be defined in code")
+  message(WARNING "F_CPU not defined, has to be defined in code")
 else()
   set(TOOLCHAIN_COMPILE_DEFINITIONS F_CPU=${F_CPU})
 endif()
