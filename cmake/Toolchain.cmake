@@ -161,15 +161,7 @@ function(configure_target TARGET)
   # HEX
   add_custom_target(
     hex ALL
-    ${AVR_OBJCOPY}
-    -j
-    .text
-    -j
-    .data
-    -O
-    ihex
-    ${TARGET}.elf
-    ${TARGET}.hex
+    ${AVR_OBJCOPY} -O ihex ${TARGET}.elf ${TARGET}.hex
     DEPENDS strip
     COMMENT "Creating ${TARGET}.hex")
 
