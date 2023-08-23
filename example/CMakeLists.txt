@@ -11,9 +11,13 @@ set(F_CPU 3333333)
 set(AVRDUDE_MCU m4809)
 set(AVRDUDE_PROGRAMMER_ID pkobn_updi)
 
+# Optionally, use pymcuprog instead of avrdude:
+#
+set(TOOLCHAIN_USE_PYMCUPROG true)
+
 # Specify the desired language standard
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 14)
 
 # Include the toolchain. If a device pack is needed, keep this value to true.
 # The device pack should be in a folder name 'device_pack'

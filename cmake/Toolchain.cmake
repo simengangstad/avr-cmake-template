@@ -12,7 +12,12 @@ find_program(AVR_CC avr-gcc REQUIRED)
 find_program(AVR_CXX avr-g++ REQUIRED)
 find_program(AVR_OBJCOPY avr-objcopy REQUIRED)
 find_program(AVR_OBJDUMP avr-objdump REQUIRED)
-find_program(AVRDUDE avrdude REQUIRED)
+
+if(TOOLCHAIN_USE_PYMCUPROG)
+  find_program(PROGRAMMER pymcuprog REQUIRED)
+else()
+  find_program(PROGRAMMER avrdude REQUIRED)
+endif()
 
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR avr)
@@ -70,8 +75,15 @@ endif()
 
 # ---------------------------- Definitions & flags -----------------------------
 
-set(TOOLCHAIN_COMPILE_DEFINITIONS -DF_CPU=${F_CPU} $<$<CONFIG:Debug>:DEBUG>
-                                  $<$<CONFIG:Release>:NDEBUG>)
+if(NOT DEFINED F_CPU)
+  message("F_CPU not defined, has to be defined in code")
+else()
+  set(TOOLCHAIN_COMPILE_DEFINITIONS F_CPU=${F_CPU})
+endif()
+
+set(TOOLCHAIN_COMPILE_DEFINITIONS
+    ${TOOLCHAIN_COMPILE_DEFINITIONS} $<$<CONFIG:Debug>:DEBUG>
+    $<$<CONFIG:Release>:NDEBUG>)
 
 set(TOOLCHAIN_COMPILE_OPTIONS
     -mmcu=${MCU}
@@ -110,7 +122,7 @@ set(TOOLCHAIN_LINK_OPTIONS
 
 if(TOOLCHAIN_NEED_DEVICE_PACK)
   set(TOOLCHAIN_COMPILE_DEFINITIONS ${TOOLCHAIN_COMPILE_DEFINITIONS}
-                                    -D__AVR_DEV_LIB_NAME__=${MCU_DEV_LIB_NAME})
+                                    __AVR_DEV_LIB_NAME__=${MCU_DEV_LIB_NAME})
 
   set(TOOLCHAIN_COMPILE_OPTIONS
       ${TOOLCHAIN_COMPILE_OPTIONS}
@@ -143,7 +155,8 @@ function(configure_target TARGET)
   add_custom_target(
     strip ALL
     avr-strip ${TARGET}.elf
-    DEPENDS ${TARGET})
+    DEPENDS ${TARGET}
+    COMMENT "Stripping ${TARGET}.elf")
 
   # HEX
   add_custom_target(
@@ -157,7 +170,8 @@ function(configure_target TARGET)
     ihex
     ${TARGET}.elf
     ${TARGET}.hex
-    DEPENDS strip)
+    DEPENDS strip
+    COMMENT "Creating ${TARGET}.hex")
 
   # EEPROM
   add_custom_target(
@@ -173,39 +187,52 @@ function(configure_target TARGET)
     ihex
     ${TARGET}.elf
     ${TARGET}-eeprom.hex
-    DEPENDS strip)
+    DEPENDS strip
+    COMMENT "Creating ${TARGET}-eeprom.hex")
 
-  # Upload
-  add_custom_target(
-    upload
-    avrdude
-    -c
-    ${AVRDUDE_PROGRAMMER_ID}
-    -p
-    ${AVRDUDE_MCU}
-    -U
-    flash:w:${TARGET}.hex:i
-    DEPENDS hex
-    COMMENT "Uploading ${TARGET}.hex to ${MCU}")
+  if(TOOLCHAIN_USE_PYMCUPROG)
+    add_custom_target(
+      upload
+      ${PROGRAMMER} write -f ${TARGET}.hex --erase --verify
+      DEPENDS hex
+      COMMENT "Uploading ${TARGET}.hex to ${MCU}")
 
-  # Upload eeprom only
-  add_custom_target(
-    upload_eeprom
-    avrdude
-    -c
-    ${AVRDUDE_PROGRAMMER_ID}
-    -p
-    ${AVRDUDE_MCU}
-    -U
-    eeprom:w:${TARGET}-eeprom.hex:i
-    DEPENDS eeprm
-    COMMENT "Uploading ${TARGET}-eeprom.hex to ${MCU}")
+    add_custom_target(
+      reset
+      ${PROGRAMMER} reset
+      COMMENT "Resetting device...")
+  else()
+    add_custom_target(
+      upload
+      ${PROGRAMMER}
+      -c
+      ${AVRDUDE_PROGRAMMER_ID}
+      -p
+      ${AVRDUDE_MCU}
+      -U
+      flash:w:${TARGET}.hex:i
+      DEPENDS hex
+      COMMENT "Uploading ${TARGET}.hex to ${MCU}")
+
+    add_custom_target(
+      upload_eeprom
+      ${PROGRAMMER}
+      -c
+      ${AVRDUDE_PROGRAMMER_ID}
+      -p
+      ${AVRDUDE_MCU}
+      -U
+      eeprom:w:${TARGET}-eeprom.hex:i
+      DEPENDS eeprm
+      COMMENT "Uploading ${TARGET}-eeprom.hex to ${MCU}")
+  endif()
 
   # Disassemble
   add_custom_target(
     disassemble
     ${AVR_OBJDUMP} -h -S ${TARGET}.elf > ${TARGET}.lst
-    DEPENDS strip)
+    DEPENDS strip
+    COMMENT "Disassembling ${TARGET}.elf")
 
   # Remove .hex, .map, eeprom .hex and .lst on clean
   set_property(
