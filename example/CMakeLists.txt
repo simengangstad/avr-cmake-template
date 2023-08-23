@@ -13,7 +13,7 @@ set(AVRDUDE_PROGRAMMER_ID pkobn_updi)
 
 # Optionally, use pymcuprog instead of avrdude:
 #
-set(TOOLCHAIN_USE_PYMCUPROG true)
+# set(TOOLCHAIN_USE_PYMCUPROG true)
 
 # Specify the desired language standard
 set(CMAKE_C_STANDARD 11)

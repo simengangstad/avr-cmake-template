@@ -15,9 +15,13 @@ set(F_CPU <CPU frequency>)
 set(AVRDUDE_MCU <corresponding MCU identifier for avrdude, e.g. m4809>)
 set(AVRDUDE_PROGRAMMER_ID <your programmer identifier, e.g. pkobn_updi>)
 
+# Optionally, use pymcuprog instead of avrdude:
+#
+# set(TOOLCHAIN_USE_PYMCUPROG true)
+
 # Optional: specify the desired language standard
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 14)
 ```
 
 2. Thereafter, the toolchain can be included with: `include(cmake/Toolchain.cmake)`.
